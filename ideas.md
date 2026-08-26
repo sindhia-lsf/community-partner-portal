@@ -68,7 +68,7 @@ Examples:
 The mark is an abstract **B/W route form**: three offset, stacked path segments that create a bold forward-moving monogram silhouette. The wordmark pairs the mark with a compact, uppercase “BLACK TECH WEEK” lockup in DM Sans; the product descriptor remains separate so the identity stays flexible.
 
 ### Signature Brand Color
-**Momentum Orange — `#F05A28`**: a saturated, warm orange used only for key actions, directional cues, and moments of program progress.
+**Ticket Yellow — `#FDD531`**: an immediate, high-visibility action color drawn from Black Tech Week’s campaign language. It carries primary partner actions and the dashed route between a current state and the next useful move.
 
 ## Style Decisions
 
@@ -76,4 +76,4 @@ The mark is an abstract **B/W route form**: three offset, stacked path segments 
 - Momentum Orange is a structural wayfinding device: it ties event title, current review stage, and the next required action into one readable task path.
 - The dashboard celebrates the event but gives the strongest operational weight to the current stage and the action that will move it forward.
 - The brand-refresh palette translates official Black Tech Week cues into the portal: **near-black** for the institutional base, **saturated cyan** for program surfaces, **vivid yellow** for immediate actions, and controlled **electric pink** and **acid lime** signals for wayfinding and status.
-- The high-contrast Black Tech Week palette is intentionally disciplined: yellow carries required actions, cyan carries event/program identity, pink marks active review signals, and lime is reserved for secondary wayfinding details.
+- The resolved high-contrast Black Tech Week palette is intentionally disciplined: **yellow** carries primary actions and route dashes; **cyan** carries program identity; **pink** marks active review attention; **lime** marks approved or supporting wayfinding; neutral gray denotes inactive items. Orange is not used as an active product-system color.

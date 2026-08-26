@@ -26,12 +26,13 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { useLocation } from "wouter";
 
 const navItems = [
-  { label: "Overview", icon: HomeIcon, active: true },
-  { label: "My event", icon: CalendarDays },
-  { label: "Media library", icon: ImagePlus },
-  { label: "Updates", icon: Bell, badge: "2" },
+  { label: "Overview", icon: HomeIcon, active: true, href: "/" },
+  { label: "My event", icon: CalendarDays, href: "/my-event" },
+  { label: "Media library", icon: ImagePlus, href: "/media-library" },
+  { label: "Updates", icon: Bell, badge: "2", href: "/updates" },
 ];
 
 const milestones = [
@@ -63,6 +64,7 @@ function Notice({ children }: { children: React.ReactNode }) {
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showAllUpdates, setShowAllUpdates] = useState(false);
+  const [, navigate] = useLocation();
 
   const announce = (message: string) => {
     toast(message, {
@@ -89,12 +91,12 @@ export default function Home() {
           </div>
 
           <nav className="rail-nav">
-            {navItems.map(({ label, icon: Icon, active, badge }) => (
+            {navItems.map(({ label, icon: Icon, active, badge, href }) => (
               <button
                 className={`rail-link ${active ? "rail-link--active" : ""}`}
                 key={label}
                 type="button"
-                onClick={() => active ? setMenuOpen(false) : announce(`${label} view coming soon`)}
+                onClick={() => { navigate(href); setMenuOpen(false); }}
               >
                 <Icon size={18} strokeWidth={active ? 2.2 : 1.85} />
                 <span>{label}</span>
@@ -161,7 +163,7 @@ export default function Home() {
               <img src="/manus-storage/btw-signal-route-art_c725d121.png" alt="" className="route-art" />
               <div className="route-art__cap" />
             </div>
-            <button className="event-open-button" type="button" onClick={() => announce("Event detail view coming soon")}>
+            <button className="event-open-button" type="button" onClick={() => navigate("/my-event")}>
               Open event <ArrowUpRight size={17} />
             </button>
           </section>
@@ -193,7 +195,7 @@ export default function Home() {
                   </li>
                 ))}
               </ol>
-              <button className="text-link" type="button" onClick={() => announce("Full application details coming soon")}>View submitted details <ChevronRight size={16} /></button>
+                <button className="text-link" type="button" onClick={() => navigate("/my-event")}>View submitted details <ChevronRight size={16} /></button>
             </article>
 
             <article className="action-panel">
@@ -202,10 +204,10 @@ export default function Home() {
               <span className="action-count">01</span>
               <h3>Send your final event graphic.</h3>
               <p>Help us finish the review by sharing the event graphic you plan to publish.</p>
-              <Button className="action-button" onClick={() => announce("Media upload flow coming soon")}>
+              <Button className="action-button" onClick={() => navigate("/media-library")}>
                 <Upload size={16} /> Upload graphic
               </Button>
-              <button className="action-secondary" type="button" onClick={() => announce("Media requirements coming soon")}>See media requirements <ArrowUpRight size={15} /></button>
+              <button className="action-secondary" type="button" onClick={() => navigate("/media-library")}>See media requirements <ArrowUpRight size={15} /></button>
             </article>
           </section>
 
@@ -231,7 +233,7 @@ export default function Home() {
                 <p className="eyebrow"><span className="eyebrow-dot" /> Media library</p>
                 <h3>Keep your event materials in one place.</h3>
                 <p>Upload final graphics and see approval feedback from our team.</p>
-                <button className="text-link" type="button" onClick={() => announce("Media library coming soon")}>Open media library <ChevronRight size={16} /></button>
+                <button className="text-link" type="button" onClick={() => navigate("/media-library")}>Open media library <ChevronRight size={16} /></button>
               </div>
             </article>
           </section>

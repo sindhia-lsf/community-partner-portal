@@ -75,3 +75,5 @@ The mark is an abstract **B/W route form**: three offset, stacked path segments 
 - The desktop experience keeps a rooted forest-green identity rail with the route-form mark and compact uppercase Black Tech Week wordmark visible at all times.
 - Momentum Orange is a structural wayfinding device: it ties event title, current review stage, and the next required action into one readable task path.
 - The dashboard celebrates the event but gives the strongest operational weight to the current stage and the action that will move it forward.
+- The brand-refresh palette translates official Black Tech Week cues into the portal: **near-black** for the institutional base, **saturated cyan** for program surfaces, **vivid yellow** for immediate actions, and controlled **electric pink** and **acid lime** signals for wayfinding and status.
+- The high-contrast Black Tech Week palette is intentionally disciplined: yellow carries required actions, cyan carries event/program identity, pink marks active review signals, and lime is reserved for secondary wayfinding details.

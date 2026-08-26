@@ -75,9 +75,10 @@ export default function Home() {
       <aside className={`side-rail ${menuOpen ? "side-rail--open" : ""}`} aria-label="Partner portal navigation">
         <div className="rail-top">
           <a className="brand" href="#overview" aria-label="Black Tech Week Partner Portal home">
-            <img src="/manus-storage/btw-momentum-mark_99cca286.png" alt="" className="brand-mark" />
+            <img src="/manus-storage/btw-signal-mark_21d97402.png" alt="" className="brand-mark" />
             <span className="brand-type">BLACK<br />TECH WEEK</span>
           </a>
+          <p className="rail-edition">BTW 2026<br /><span>CINCINNATI, OH</span></p>
 
           <div className="program-switcher">
             <span className="switcher-kicker">Partner portal</span>
@@ -119,7 +120,7 @@ export default function Home() {
       <div className="content-shell">
         <header className="mobile-bar">
           <a className="brand brand--mobile" href="#overview" aria-label="Black Tech Week Partner Portal home">
-            <img src="/manus-storage/btw-momentum-mark_99cca286.png" alt="" className="brand-mark" />
+            <img src="/manus-storage/btw-signal-mark_21d97402.png" alt="" className="brand-mark" />
             <span className="brand-type">BLACK<br />TECH WEEK</span>
           </a>
           <button className="menu-button" type="button" aria-label="Open navigation" onClick={() => setMenuOpen(!menuOpen)}>
@@ -157,13 +158,21 @@ export default function Home() {
               </div>
             </div>
             <div className="route-art-wrap" aria-hidden="true">
-              <img src="/manus-storage/btw-partner-route-art_2c3b517b.png" alt="" className="route-art" />
+              <img src="/manus-storage/btw-signal-route-art_c725d121.png" alt="" className="route-art" />
               <div className="route-art__cap" />
             </div>
             <button className="event-open-button" type="button" onClick={() => announce("Event detail view coming soon")}>
               Open event <ArrowUpRight size={17} />
             </button>
           </section>
+
+          <div className="workflow-bridge" aria-hidden="true">
+            <span className="workflow-bridge__node workflow-bridge__node--event" />
+            <span className="workflow-bridge__line" />
+            <span className="workflow-bridge__node workflow-bridge__node--stage" />
+            <span className="workflow-bridge__line workflow-bridge__line--short" />
+            <span className="workflow-bridge__node workflow-bridge__node--action" />
+          </div>
 
           <section className="dashboard-grid" aria-label="Event status and current action">
             <article className="progress-panel">
@@ -217,7 +226,7 @@ export default function Home() {
             </article>
 
             <article className="media-panel">
-              <img src="/manus-storage/btw-event-mosaic_1812937b.png" alt="Abstract event-program artwork in orange, forest green, yellow and lavender." className="media-art" />
+              <img src="/manus-storage/btw-signal-mosaic_1f8a2065.png" alt="Abstract Black Tech Week event-program artwork in cyan, yellow, pink, lime, and black." className="media-art" />
               <div className="media-content">
                 <p className="eyebrow"><span className="eyebrow-dot" /> Media library</p>
                 <h3>Keep your event materials in one place.</h3>

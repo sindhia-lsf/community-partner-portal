@@ -4,7 +4,7 @@
  * Cyan denotes program context, yellow moves a partner forward, and pink/lime remain secondary signals.
  */
 import { useState, type ReactNode } from "react";
-import { Bell, CalendarDays, CircleHelp, Home, ImagePlus, Menu, MoreHorizontal, X } from "lucide-react";
+import { Bell, CalendarDays, CircleHelp, Home, ImagePlus, Menu, MoreHorizontal, Share2, X } from "lucide-react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 
@@ -12,6 +12,7 @@ const navItems = [
   { label: "Overview", href: "/", icon: Home },
   { label: "My event", href: "/my-event", icon: CalendarDays },
   { label: "Media library", href: "/media-library", icon: ImagePlus },
+  { label: "Social requests", href: "/social-requests", icon: Share2 },
   { label: "Updates", href: "/updates", icon: Bell, badge: "2" },
 ];
 

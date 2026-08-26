@@ -7,6 +7,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import MediaLibrary from "./pages/MediaLibrary";
 import MyEvent from "./pages/MyEvent";
+import SocialRequests from "./pages/SocialRequests";
 import Updates from "./pages/Updates";
 
 
@@ -16,6 +17,7 @@ function Router() {
       <Route path={"/"} component={Home} />
       <Route path={"/my-event"} component={MyEvent} />
       <Route path={"/media-library"} component={MediaLibrary} />
+      <Route path={"/social-requests"} component={SocialRequests} />
       <Route path={"/updates"} component={Updates} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}

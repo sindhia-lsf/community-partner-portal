@@ -20,6 +20,7 @@ import {
   Menu,
   MessageCircle,
   MoreHorizontal,
+  Share2,
   Sparkles,
   Upload,
   X,
@@ -32,6 +33,7 @@ const navItems = [
   { label: "Overview", icon: HomeIcon, active: true, href: "/" },
   { label: "My event", icon: CalendarDays, href: "/my-event" },
   { label: "Media library", icon: ImagePlus, href: "/media-library" },
+  { label: "Social requests", icon: Share2, href: "/social-requests" },
   { label: "Updates", icon: Bell, badge: "2", href: "/updates" },
 ];
 

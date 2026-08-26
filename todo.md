@@ -12,3 +12,9 @@
 - [x] Build the Media Library with upload placeholders, review states, comments, and inactive toggles.
 - [x] Build Updates with notifications, conversation history, and direct-message composer behavior.
 - [x] Verify desktop and mobile views, then save an expanded-portal checkpoint.
+
+# Social Collaboration Requests Checklist
+
+- [x] Define post submission fields, collaboration request types, statuses, and feedback states.
+- [x] Build Social media requests with post records, per-post review, and feedback comments.
+- [x] Verify desktop and mobile presentation, then save a new portal checkpoint.

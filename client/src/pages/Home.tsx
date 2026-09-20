@@ -79,7 +79,7 @@ export default function Home() {
       <aside className={`side-rail ${menuOpen ? "side-rail--open" : ""}`} aria-label="Partner portal navigation">
         <div className="rail-top">
           <a className="brand" href="#overview" aria-label="Black Tech Week Partner Portal home">
-            <img src="/assets/btw-signal-mark.png" alt="" className="brand-mark" />
+            <img src="/assets/btw-signal-mark.webp" alt="" className="brand-mark" />
             <span className="brand-type">BLACK<br />TECH WEEK</span>
           </a>
           <p className="rail-edition">BTW 2026<br /><span>CINCINNATI, OH</span></p>
@@ -124,7 +124,7 @@ export default function Home() {
       <div className="content-shell">
         <header className="mobile-bar">
           <a className="brand brand--mobile" href="#overview" aria-label="Black Tech Week Partner Portal home">
-            <img src="/assets/btw-signal-mark.png" alt="" className="brand-mark" />
+            <img src="/assets/btw-signal-mark.webp" alt="" className="brand-mark" />
             <span className="brand-type">BLACK<br />TECH WEEK</span>
           </a>
           <button className="menu-button" type="button" aria-label="Open navigation" onClick={() => setMenuOpen(!menuOpen)}>

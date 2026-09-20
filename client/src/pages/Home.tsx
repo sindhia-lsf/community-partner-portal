@@ -79,7 +79,7 @@ export default function Home() {
       <aside className={`side-rail ${menuOpen ? "side-rail--open" : ""}`} aria-label="Partner portal navigation">
         <div className="rail-top">
           <a className="brand" href="#overview" aria-label="Black Tech Week Partner Portal home">
-            <img src="/manus-storage/btw-signal-mark_21d97402.png" alt="" className="brand-mark" />
+            <img src="/assets/btw-signal-mark.png" alt="" className="brand-mark" />
             <span className="brand-type">BLACK<br />TECH WEEK</span>
           </a>
           <p className="rail-edition">BTW 2026<br /><span>CINCINNATI, OH</span></p>
@@ -124,7 +124,7 @@ export default function Home() {
       <div className="content-shell">
         <header className="mobile-bar">
           <a className="brand brand--mobile" href="#overview" aria-label="Black Tech Week Partner Portal home">
-            <img src="/manus-storage/btw-signal-mark_21d97402.png" alt="" className="brand-mark" />
+            <img src="/assets/btw-signal-mark.png" alt="" className="brand-mark" />
             <span className="brand-type">BLACK<br />TECH WEEK</span>
           </a>
           <button className="menu-button" type="button" aria-label="Open navigation" onClick={() => setMenuOpen(!menuOpen)}>
@@ -162,7 +162,7 @@ export default function Home() {
               </div>
             </div>
             <div className="route-art-wrap" aria-hidden="true">
-              <img src="/manus-storage/btw-signal-route-art_c725d121.png" alt="" className="route-art" />
+              <img src="/assets/btw-signal-route-art.webp" alt="" className="route-art" />
               <div className="route-art__cap" />
             </div>
             <button className="event-open-button" type="button" onClick={() => navigate("/my-event")}>
@@ -230,7 +230,7 @@ export default function Home() {
             </article>
 
             <article className="media-panel">
-              <img src="/manus-storage/btw-signal-mosaic_1f8a2065.png" alt="Abstract Black Tech Week event-program artwork in cyan, yellow, pink, lime, and black." className="media-art" />
+              <img src="/assets/btw-signal-mosaic.webp" alt="Abstract Black Tech Week event-program artwork in cyan, yellow, pink, lime, and black." className="media-art" />
               <div className="media-content">
                 <p className="eyebrow"><span className="eyebrow-dot" /> Media library</p>
                 <h3>Keep your event materials in one place.</h3>

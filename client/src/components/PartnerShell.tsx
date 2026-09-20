@@ -31,7 +31,7 @@ export default function PartnerShell({ children }: { children: ReactNode }) {
       <aside className={`side-rail ${menuOpen ? "side-rail--open" : ""}`} aria-label="Partner portal navigation">
         <div className="rail-top">
           <button className="brand brand-button" onClick={() => navigateTo("/")} type="button" aria-label="Black Tech Week Partner Portal home">
-            <img src="/manus-storage/btw-signal-mark_21d97402.png" alt="" className="brand-mark" />
+            <img src="/assets/btw-signal-mark.png" alt="" className="brand-mark" />
             <span className="brand-type">BLACK<br />TECH WEEK</span>
           </button>
           <p className="rail-edition">BTW 2026<br /><span>CINCINNATI, OH</span></p>
@@ -62,7 +62,7 @@ export default function PartnerShell({ children }: { children: ReactNode }) {
       <div className="content-shell">
         <header className="mobile-bar">
           <button className="brand brand--mobile brand-button" type="button" onClick={() => navigateTo("/")} aria-label="Black Tech Week Partner Portal home">
-            <img src="/manus-storage/btw-signal-mark_21d97402.png" alt="" className="brand-mark" /><span className="brand-type">BLACK<br />TECH WEEK</span>
+            <img src="/assets/btw-signal-mark.png" alt="" className="brand-mark" /><span className="brand-type">BLACK<br />TECH WEEK</span>
           </button>
           <button className="menu-button" type="button" aria-label="Toggle navigation" onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X size={23} /> : <Menu size={23} />}</button>
         </header>

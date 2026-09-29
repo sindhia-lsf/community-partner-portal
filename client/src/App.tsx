@@ -7,6 +7,14 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import MediaLibrary from "./pages/MediaLibrary";
 import MyEvent from "./pages/MyEvent";
+import OrganizerDashboard from "./pages/OrganizerDashboard";
+import OrganizerEventDetail from "./pages/OrganizerEventDetail";
+import OrganizerEvents from "./pages/OrganizerEvents";
+import OrganizerLogin from "./pages/OrganizerLogin";
+import OrganizerMediaDetail from "./pages/OrganizerMediaDetail";
+import OrganizerMedia from "./pages/OrganizerMedia";
+import OrganizerSocialDetail from "./pages/OrganizerSocialDetail";
+import OrganizerSocial from "./pages/OrganizerSocial";
 import SocialRequests from "./pages/SocialRequests";
 import Updates from "./pages/Updates";
 
@@ -19,6 +27,14 @@ function Router() {
       <Route path={"/media-library"} component={MediaLibrary} />
       <Route path={"/social-requests"} component={SocialRequests} />
       <Route path={"/updates"} component={Updates} />
+      <Route path={"/organizer/login"} component={OrganizerLogin} />
+      <Route path={"/organizer"} component={OrganizerDashboard} />
+      <Route path={"/organizer/events/:id"} component={OrganizerEventDetail} />
+      <Route path={"/organizer/events"} component={OrganizerEvents} />
+      <Route path={"/organizer/media/:id"} component={OrganizerMediaDetail} />
+      <Route path={"/organizer/media"} component={OrganizerMedia} />
+      <Route path={"/organizer/social/:id"} component={OrganizerSocialDetail} />
+      <Route path={"/organizer/social"} component={OrganizerSocial} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

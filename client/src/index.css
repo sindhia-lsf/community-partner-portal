@@ -919,3 +919,16 @@
     .login-role-option-icon { width: 34px; height: 34px; }
   }
 }
+
+
+@layer components {
+  .profile-menu { position: relative; width: 100%; }
+  .profile-menu .partner-card, .profile-menu .organizer-person { width: 100%; }
+  .profile-menu-popover { position: absolute; z-index: 40; bottom: calc(100% + 10px); left: 0; width: min(205px, 100%); border: 1px solid rgba(255,255,255,.28); background: #ffffff; padding: 5px; box-shadow: 0 12px 28px rgba(0,0,0,.24); }
+  .profile-menu-popover::after { position: absolute; bottom: -6px; left: 19px; width: 11px; height: 11px; border-right: 1px solid rgba(255,255,255,.28); border-bottom: 1px solid rgba(255,255,255,.28); background: #ffffff; content: ""; transform: rotate(45deg); }
+  .profile-menu-popover button { position: relative; z-index: 1; display: flex; align-items: center; width: 100%; gap: 9px; border: 0; background: #ffffff; color: #020104; padding: 10px 9px; font: 800 11px "DM Sans", sans-serif; text-align: left; transition: background .16s var(--ease-out), color .16s var(--ease-out); }
+  .profile-menu-popover button:hover { background: #ffd8eb; color: #020104; }
+  .profile-menu-popover button svg { color: #ed3996; }
+  .profile-menu-popover--organizer { border-color: rgba(0,161,222,.65); }
+  .profile-menu-popover--organizer::after { border-color: rgba(0,161,222,.65); }
+}

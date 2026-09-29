@@ -17,6 +17,7 @@ import {
   Home as HomeIcon,
   ImagePlus,
   LayoutList,
+  LogOut,
   Menu,
   MessageCircle,
   MoreHorizontal,
@@ -66,6 +67,7 @@ function Notice({ children }: { children: React.ReactNode }) {
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showAllUpdates, setShowAllUpdates] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [, navigate] = useLocation();
 
   const announce = (message: string) => {
@@ -113,11 +115,16 @@ export default function Home() {
             <CircleHelp size={18} />
             Help center
           </button>
-          <button className="partner-card" type="button" onClick={() => announce("Partner profile settings coming soon")}>
-            <span className="avatar avatar--partner">KF</span>
-            <span className="partner-name">Camille Jones<small>Event partner</small></span>
-            <MoreHorizontal size={18} />
-          </button>
+          <div className="profile-menu">
+            <button className="partner-card" type="button" onClick={() => setProfileMenuOpen((isOpen) => !isOpen)} aria-expanded={profileMenuOpen} aria-controls="partner-home-profile-menu">
+              <span className="avatar avatar--partner">KF</span>
+              <span className="partner-name">Camille Jones<small>Event partner</small></span>
+              <MoreHorizontal size={18} />
+            </button>
+            {profileMenuOpen && <div className="profile-menu-popover" id="partner-home-profile-menu" role="menu">
+              <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); setMenuOpen(false); navigate("/login"); }}><LogOut size={16} />Sign out</button>
+            </div>}
+          </div>
         </div>
       </aside>
 

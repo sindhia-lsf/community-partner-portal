@@ -6,6 +6,7 @@ import {
   CircleHelp,
   ClipboardCheck,
   House,
+  LogOut,
   Menu,
   MoreHorizontal,
   ShieldCheck,
@@ -25,6 +26,7 @@ const navItems = [
 export default function OrganizerShell({ children }: { children: ReactNode }) {
   const [location, navigate] = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const activePath = location.replace(/\/$/, "") || "/organizer";
 
   const navigateTo = (href: string) => {
@@ -63,11 +65,16 @@ export default function OrganizerShell({ children }: { children: ReactNode }) {
 
         <div className="organizer-rail-bottom">
           <button className="organizer-helper" type="button" onClick={() => toast("Organizer support routing coming soon")}><CircleHelp size={17} />Review guidelines</button>
-          <button className="organizer-person" type="button" onClick={() => toast("Organizer profile settings coming soon")}>
-            <span className="organizer-avatar">LB</span>
-            <span><strong>Lena Brooks</strong><small>Program operations</small></span>
-            <MoreHorizontal size={18} />
-          </button>
+          <div className="profile-menu profile-menu--organizer">
+            <button className="organizer-person" type="button" onClick={() => setProfileMenuOpen((isOpen) => !isOpen)} aria-expanded={profileMenuOpen} aria-controls="organizer-profile-menu">
+              <span className="organizer-avatar">LB</span>
+              <span><strong>Lena Brooks</strong><small>Program operations</small></span>
+              <MoreHorizontal size={18} />
+            </button>
+            {profileMenuOpen && <div className="profile-menu-popover profile-menu-popover--organizer" id="organizer-profile-menu" role="menu">
+              <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); navigateTo("/login"); }}><LogOut size={16} />Sign out</button>
+            </div>}
+          </div>
         </div>
       </aside>
 

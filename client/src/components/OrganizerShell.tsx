@@ -83,7 +83,7 @@ export default function OrganizerShell({ children }: { children: ReactNode }) {
         <div className="organizer-topbar">
           <div className="organizer-topbar-route"><span className="organizer-topbar-dot" />Community events <i /> Organizer view</div>
           <div className="organizer-topbar-actions">
-            <button type="button" className="organizer-partner-link" onClick={() => navigateTo("/")}>Partner portal <ChevronDown size={14} /></button>
+            <button type="button" className="organizer-partner-link" onClick={() => navigateTo("/login")}>Switch workspace <ChevronDown size={14} /></button>
             <button type="button" className="organizer-notification" aria-label="View organizer notifications" onClick={() => toast("3 items have moved into your review queue")}><Bell size={18} /><span /></button>
           </div>
         </div>

@@ -27,6 +27,7 @@ function Router() {
       <Route path={"/media-library"} component={MediaLibrary} />
       <Route path={"/social-requests"} component={SocialRequests} />
       <Route path={"/updates"} component={Updates} />
+      <Route path={"/login"} component={OrganizerLogin} />
       <Route path={"/organizer/login"} component={OrganizerLogin} />
       <Route path={"/organizer"} component={OrganizerDashboard} />
       <Route path={"/organizer/events/:id"} component={OrganizerEventDetail} />

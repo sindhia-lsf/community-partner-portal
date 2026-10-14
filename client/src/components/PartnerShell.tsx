@@ -4,13 +4,17 @@
  * Cyan denotes program context, yellow moves a partner forward, and pink/lime remain secondary signals.
  */
 import { useState, type ReactNode } from "react";
-import { Bell, CalendarDays, CircleHelp, Home, ImagePlus, Menu, MoreHorizontal, Share2, X } from "lucide-react";
+import { Bell, BookOpen, Building2, CalendarDays, CircleHelp, Home, ImagePlus, Menu, MoreHorizontal, Share2, X } from "lucide-react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { usePrimaryEvent } from "@/lib/portal";
 
 const navItems = [
   { label: "Overview", href: "/", icon: Home },
   { label: "My event", href: "/my-event", icon: CalendarDays },
+  { label: "Organizer details", href: "/organizer", icon: Building2 },
+  { label: "Guidelines", href: "/guidelines", icon: BookOpen },
   { label: "Media library", href: "/media-library", icon: ImagePlus },
   { label: "Social requests", href: "/social-requests", icon: Share2 },
   { label: "Updates", href: "/updates", icon: Bell, badge: "2" },
@@ -19,7 +23,12 @@ const navItems = [
 export default function PartnerShell({ children }: { children: ReactNode }) {
   const [location, navigate] = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const { user } = useAuth();
+  const { event } = usePrimaryEvent();
   const activePath = location === "/" ? "/" : location.replace(/\/$/, "");
+  const organizationName = event?.organizer.companyName || "Your organization";
+  const accountName = user?.displayName || user?.email || "Partner account";
+  const initials = accountName.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "PP";
 
   const navigateTo = (href: string) => {
     navigate(href);
@@ -31,14 +40,13 @@ export default function PartnerShell({ children }: { children: ReactNode }) {
       <aside className={`side-rail ${menuOpen ? "side-rail--open" : ""}`} aria-label="Partner portal navigation">
         <div className="rail-top">
           <button className="brand brand-button" onClick={() => navigateTo("/")} type="button" aria-label="Black Tech Week Partner Portal home">
-            <img src="/manus-storage/btw-signal-mark_21d97402.png" alt="" className="brand-mark" />
-            <span className="brand-type">BLACK<br />TECH WEEK</span>
+            <img src="/assets/btw-yellow-logo.png" alt="Black Tech Week" className="brand-logo" />
           </button>
           <p className="rail-edition">BTW 2026<br /><span>CINCINNATI, OH</span></p>
 
           <div className="program-switcher">
             <span className="switcher-kicker">Partner portal</span>
-            <button className="switcher-button" type="button" onClick={() => toast("Organization switcher coming soon")}><span>Kindred Futures</span><span aria-hidden>⌄</span></button>
+            <button className="switcher-button" type="button" onClick={() => toast("Organization switcher coming soon")}><span>{organizationName}</span><span aria-hidden>⌄</span></button>
           </div>
 
           <nav className="rail-nav">
@@ -53,8 +61,8 @@ export default function PartnerShell({ children }: { children: ReactNode }) {
 
         <div className="rail-bottom">
           <button className="help-link" type="button" onClick={() => toast("Support center coming soon")}><CircleHelp size={18} />Help center</button>
-          <button className="partner-card" type="button" onClick={() => toast("Partner profile settings coming soon")}>
-            <span className="avatar avatar--partner">KF</span><span className="partner-name">Camille Jones<small>Event partner</small></span><MoreHorizontal size={18} />
+          <button className="partner-card" type="button" onClick={() => navigateTo("/organizer")}>
+            <span className="avatar avatar--partner">{initials}</span><span className="partner-name">{accountName}<small>Event partner</small></span><MoreHorizontal size={18} />
           </button>
         </div>
       </aside>
@@ -62,7 +70,7 @@ export default function PartnerShell({ children }: { children: ReactNode }) {
       <div className="content-shell">
         <header className="mobile-bar">
           <button className="brand brand--mobile brand-button" type="button" onClick={() => navigateTo("/")} aria-label="Black Tech Week Partner Portal home">
-            <img src="/manus-storage/btw-signal-mark_21d97402.png" alt="" className="brand-mark" /><span className="brand-type">BLACK<br />TECH WEEK</span>
+            <img src="/assets/btw-yellow-logo.png" alt="Black Tech Week" className="brand-logo" />
           </button>
           <button className="menu-button" type="button" aria-label="Toggle navigation" onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X size={23} /> : <Menu size={23} />}</button>
         </header>

@@ -2,6 +2,7 @@ import express from "express";
 import { createServer } from "http";
 import path from "path";
 import { fileURLToPath } from "url";
+import { addApiRoutes, portalErrorHandler } from "./api";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -9,6 +10,10 @@ const __dirname = path.dirname(__filename);
 async function startServer() {
   const app = express();
   const server = createServer(app);
+
+  app.disable("x-powered-by");
+  app.use(express.json({ limit: "1mb" }));
+  addApiRoutes(app);
 
   // Serve static files from dist/public in production
   const staticPath =
@@ -22,6 +27,8 @@ async function startServer() {
   app.get("*", (_req, res) => {
     res.sendFile(path.join(staticPath, "index.html"));
   });
+
+  app.use(portalErrorHandler);
 
   const port = process.env.PORT || 3000;
 

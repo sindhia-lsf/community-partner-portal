@@ -1,0 +1,22 @@
+[Unit]
+Description=Black Tech Week Community Partner Portal
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=lightship
+Group=lightship
+WorkingDirectory=/home/lightship/.openclaw/workspace-lightship/projects/community-partner-portal
+ExecStart=/home/lightship/.openclaw/workspace-lightship/projects/community-partner-portal/scripts/start-portal.sh
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

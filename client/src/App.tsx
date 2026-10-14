@@ -1,27 +1,45 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
+import { Redirect, Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
+import Guidelines from "./pages/Guidelines";
+import Login from "./pages/Login";
 import MediaLibrary from "./pages/MediaLibrary";
 import MyEvent from "./pages/MyEvent";
+import Organizer from "./pages/Organizer";
 import SocialRequests from "./pages/SocialRequests";
 import Updates from "./pages/Updates";
 
 
-function Router() {
+function ProtectedRoutes() {
+  const { loading, user } = useAuth();
+  if (loading) return <main className="auth-page" aria-label="Loading portal" />;
+  if (!user) return <Redirect to="/login" />;
   return (
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path={"/my-event"} component={MyEvent} />
+      <Route path={"/organizer"} component={Organizer} />
+      <Route path={"/guidelines"} component={Guidelines} />
       <Route path={"/media-library"} component={MediaLibrary} />
       <Route path={"/social-requests"} component={SocialRequests} />
       <Route path={"/updates"} component={Updates} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
+    </Switch>
+  );
+}
+
+function Router() {
+  return (
+    <Switch>
+      <Route path="/login" component={Login} />
+      <Route><ProtectedRoutes /></Route>
     </Switch>
   );
 }
@@ -39,8 +57,10 @@ function App() {
         // switchable
       >
         <TooltipProvider>
-          <Toaster />
-          <Router />
+          <AuthProvider>
+            <Toaster />
+            <Router />
+          </AuthProvider>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
   { label: "Overview", href: "/organizer", icon: House },
@@ -27,12 +28,15 @@ export default function OrganizerShell({ children }: { children: ReactNode }) {
   const [location, navigate] = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const { user, signOut } = useAuth();
   const activePath = location.replace(/\/$/, "") || "/organizer";
 
   const navigateTo = (href: string) => {
     navigate(href);
     setMenuOpen(false);
   };
+  const accountName = user?.displayName || user?.email || "Lightship team";
+  const initials = accountName.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "LT";
 
   return (
     <div className="organizer-shell">
@@ -67,12 +71,12 @@ export default function OrganizerShell({ children }: { children: ReactNode }) {
           <button className="organizer-helper" type="button" onClick={() => toast("Organizer support routing coming soon")}><CircleHelp size={17} />Review guidelines</button>
           <div className="profile-menu profile-menu--organizer">
             <button className="organizer-person" type="button" onClick={() => setProfileMenuOpen((isOpen) => !isOpen)} aria-expanded={profileMenuOpen} aria-controls="organizer-profile-menu">
-              <span className="organizer-avatar">LB</span>
-              <span><strong>Lena Brooks</strong><small>Program operations</small></span>
+              <span className="organizer-avatar">{initials}</span>
+              <span><strong>{accountName}</strong><small>Program operations</small></span>
               <MoreHorizontal size={18} />
             </button>
             {profileMenuOpen && <div className="profile-menu-popover profile-menu-popover--organizer" id="organizer-profile-menu" role="menu">
-              <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); navigateTo("/login"); }}><LogOut size={16} />Sign out</button>
+              <button type="button" role="menuitem" onClick={() => { setProfileMenuOpen(false); void signOut(); }}><LogOut size={16} />Sign out</button>
             </div>}
           </div>
         </div>

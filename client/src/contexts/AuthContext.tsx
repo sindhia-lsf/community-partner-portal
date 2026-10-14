@@ -12,8 +12,8 @@ export type PortalUser = {
 type AuthContextValue = {
   user: PortalUser | null;
   loading: boolean;
-  signInGoogle: () => Promise<void>;
-  signInEmail: (email: string, password: string) => Promise<void>;
+  signInGoogle: () => Promise<PortalUser>;
+  signInEmail: (email: string, password: string) => Promise<PortalUser>;
   setUpPassword: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -49,10 +49,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       body: JSON.stringify({ idToken }),
     });
     setUser(payload.user);
+    return payload.user as PortalUser;
   }, []);
 
   const exchangeFirebaseCredential = useCallback(async (credential: UserCredential) => {
-    await exchangeFirebaseToken(await credential.user.getIdToken());
+    return exchangeFirebaseToken(await credential.user.getIdToken());
   }, [exchangeFirebaseToken]);
 
   useEffect(() => {

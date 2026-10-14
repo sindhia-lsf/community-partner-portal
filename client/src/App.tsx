@@ -45,6 +45,7 @@ function ProtectedRoutes() {
   if (!user) return <Redirect to="/login" />;
   return (
     <Switch>
+      <Route path="/organizer"><OrganizerRoutes /></Route>
       <Route path="/organizer/:rest*"><OrganizerRoutes /></Route>
       <Route path={"/"} component={Home} />
       <Route path={"/my-event"} component={MyEvent} />

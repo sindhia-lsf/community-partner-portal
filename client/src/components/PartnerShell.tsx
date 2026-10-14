@@ -4,7 +4,7 @@
  * Cyan denotes program context, yellow moves a partner forward, and pink/lime remain secondary signals.
  */
 import { useState, type ReactNode } from "react";
-import { Bell, BookOpen, Building2, CalendarDays, CircleHelp, Home, ImagePlus, Menu, MoreHorizontal, Share2, X } from "lucide-react";
+import { Bell, BookOpen, Building2, CalendarDays, CircleHelp, Home, ImagePlus, LogOut, Menu, MoreHorizontal, Share2, X } from "lucide-react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,7 +13,7 @@ import { usePrimaryEvent } from "@/lib/portal";
 const navItems = [
   { label: "Overview", href: "/", icon: Home },
   { label: "My event", href: "/my-event", icon: CalendarDays },
-  { label: "Organizer details", href: "/organizer", icon: Building2 },
+  { label: "Organizer details", href: "/partner/organizer", icon: Building2 },
   { label: "Guidelines", href: "/guidelines", icon: BookOpen },
   { label: "Media library", href: "/media-library", icon: ImagePlus },
   { label: "Social requests", href: "/social-requests", icon: Share2 },
@@ -23,7 +23,8 @@ const navItems = [
 export default function PartnerShell({ children }: { children: ReactNode }) {
   const [location, navigate] = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
-  const { user } = useAuth();
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const { user, signOut } = useAuth();
   const { event } = usePrimaryEvent();
   const activePath = location === "/" ? "/" : location.replace(/\/$/, "");
   const organizationName = event?.organizer.companyName || "Your organization";
@@ -61,9 +62,14 @@ export default function PartnerShell({ children }: { children: ReactNode }) {
 
         <div className="rail-bottom">
           <button className="help-link" type="button" onClick={() => toast("Support center coming soon")}><CircleHelp size={18} />Help center</button>
-          <button className="partner-card" type="button" onClick={() => navigateTo("/organizer")}>
-            <span className="avatar avatar--partner">{initials}</span><span className="partner-name">{accountName}<small>Event partner</small></span><MoreHorizontal size={18} />
-          </button>
+          <div className="profile-menu">
+            <button className="partner-card" type="button" onClick={() => setProfileMenuOpen((isOpen) => !isOpen)} aria-expanded={profileMenuOpen} aria-controls="partner-profile-menu">
+              <span className="avatar avatar--partner">{initials}</span><span className="partner-name">{accountName}<small>Event partner</small></span><MoreHorizontal size={18} />
+            </button>
+            {profileMenuOpen && <div className="profile-menu-popover" id="partner-profile-menu" role="menu">
+              <button type="button" role="menuitem" onClick={() => void signOut()}><LogOut size={16} />Sign out</button>
+            </div>}
+          </div>
         </div>
       </aside>
 

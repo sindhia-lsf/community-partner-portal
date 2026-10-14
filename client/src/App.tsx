@@ -11,9 +11,33 @@ import Login from "./pages/Login";
 import MediaLibrary from "./pages/MediaLibrary";
 import MyEvent from "./pages/MyEvent";
 import Organizer from "./pages/Organizer";
+import OrganizerDashboard from "./pages/OrganizerDashboard";
+import OrganizerEventDetail from "./pages/OrganizerEventDetail";
+import OrganizerEvents from "./pages/OrganizerEvents";
+import OrganizerMediaDetail from "./pages/OrganizerMediaDetail";
+import OrganizerMedia from "./pages/OrganizerMedia";
+import OrganizerSocialDetail from "./pages/OrganizerSocialDetail";
+import OrganizerSocial from "./pages/OrganizerSocial";
 import SocialRequests from "./pages/SocialRequests";
 import Updates from "./pages/Updates";
 
+
+function OrganizerRoutes() {
+  const { user } = useAuth();
+  if (!user?.roles.some((role) => role === "admin" || role === "lightship_reviewer")) return <Redirect to="/" />;
+  return (
+    <Switch>
+      <Route path="/organizer" component={OrganizerDashboard} />
+      <Route path="/organizer/events/:id" component={OrganizerEventDetail} />
+      <Route path="/organizer/events" component={OrganizerEvents} />
+      <Route path="/organizer/media/:id" component={OrganizerMediaDetail} />
+      <Route path="/organizer/media" component={OrganizerMedia} />
+      <Route path="/organizer/social/:id" component={OrganizerSocialDetail} />
+      <Route path="/organizer/social" component={OrganizerSocial} />
+      <Route component={NotFound} />
+    </Switch>
+  );
+}
 
 function ProtectedRoutes() {
   const { loading, user } = useAuth();
@@ -21,9 +45,10 @@ function ProtectedRoutes() {
   if (!user) return <Redirect to="/login" />;
   return (
     <Switch>
+      <Route path="/organizer/:rest*"><OrganizerRoutes /></Route>
       <Route path={"/"} component={Home} />
       <Route path={"/my-event"} component={MyEvent} />
-      <Route path={"/organizer"} component={Organizer} />
+      <Route path={"/partner/organizer"} component={Organizer} />
       <Route path={"/guidelines"} component={Guidelines} />
       <Route path={"/media-library"} component={MediaLibrary} />
       <Route path={"/social-requests"} component={SocialRequests} />

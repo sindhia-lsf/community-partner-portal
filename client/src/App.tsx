@@ -2,6 +2,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import { Redirect, Route, Switch } from "wouter";
+import type { ReactNode } from "react";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -22,21 +23,10 @@ import SocialRequests from "./pages/SocialRequests";
 import Updates from "./pages/Updates";
 
 
-function OrganizerRoutes() {
+function OrganizerGate({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   if (!user?.roles.some((role) => role === "admin" || role === "lightship_reviewer")) return <Redirect to="/" />;
-  return (
-    <Switch>
-      <Route path="/organizer" component={OrganizerDashboard} />
-      <Route path="/organizer/events/:id" component={OrganizerEventDetail} />
-      <Route path="/organizer/events" component={OrganizerEvents} />
-      <Route path="/organizer/media/:id" component={OrganizerMediaDetail} />
-      <Route path="/organizer/media" component={OrganizerMedia} />
-      <Route path="/organizer/social/:id" component={OrganizerSocialDetail} />
-      <Route path="/organizer/social" component={OrganizerSocial} />
-      <Route component={NotFound} />
-    </Switch>
-  );
+  return <>{children}</>;
 }
 
 function ProtectedRoutes() {
@@ -45,8 +35,13 @@ function ProtectedRoutes() {
   if (!user) return <Redirect to="/login" />;
   return (
     <Switch>
-      <Route path="/organizer"><OrganizerRoutes /></Route>
-      <Route path="/organizer/:rest*"><OrganizerRoutes /></Route>
+      <Route path="/organizer"><OrganizerGate><OrganizerDashboard /></OrganizerGate></Route>
+      <Route path="/organizer/events/:id"><OrganizerGate><OrganizerEventDetail /></OrganizerGate></Route>
+      <Route path="/organizer/events"><OrganizerGate><OrganizerEvents /></OrganizerGate></Route>
+      <Route path="/organizer/media/:id"><OrganizerGate><OrganizerMediaDetail /></OrganizerGate></Route>
+      <Route path="/organizer/media"><OrganizerGate><OrganizerMedia /></OrganizerGate></Route>
+      <Route path="/organizer/social/:id"><OrganizerGate><OrganizerSocialDetail /></OrganizerGate></Route>
+      <Route path="/organizer/social"><OrganizerGate><OrganizerSocial /></OrganizerGate></Route>
       <Route path={"/"} component={Home} />
       <Route path={"/my-event"} component={MyEvent} />
       <Route path={"/partner/organizer"} component={Organizer} />

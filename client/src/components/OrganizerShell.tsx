@@ -19,9 +19,9 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
   { label: "Overview", href: "/organizer", icon: House },
-  { label: "Events", href: "/organizer/events", icon: CalendarDays, badge: "17" },
-  { label: "Media review", href: "/organizer/media", icon: ClipboardCheck, badge: "2" },
-  { label: "Social review", href: "/organizer/social", icon: Share2, badge: "2" },
+  { label: "Events", href: "/organizer/events", icon: CalendarDays },
+  { label: "Media review", href: "/organizer/media", icon: ClipboardCheck },
+  { label: "Social review", href: "/organizer/social", icon: Share2 },
 ];
 
 export default function OrganizerShell({ children }: { children: ReactNode }) {
@@ -54,13 +54,12 @@ export default function OrganizerShell({ children }: { children: ReactNode }) {
           </div>
 
           <nav className="organizer-nav">
-            {navItems.map(({ label, href, icon: Icon, badge }) => {
+            {navItems.map(({ label, href, icon: Icon }) => {
               const active = activePath === href;
               return (
                 <button className={`organizer-nav-link ${active ? "organizer-nav-link--active" : ""}`} key={href} type="button" onClick={() => navigateTo(href)}>
                   <Icon size={18} strokeWidth={active ? 2.4 : 1.9} />
                   <span>{label}</span>
-                  {badge && <span className="organizer-nav-badge">{badge}</span>}
                 </button>
               );
             })}
@@ -95,7 +94,7 @@ export default function OrganizerShell({ children }: { children: ReactNode }) {
           <div className="organizer-topbar-route"><span className="organizer-topbar-dot" />Community events <i /> Organizer view</div>
           <div className="organizer-topbar-actions">
             <button type="button" className="organizer-partner-link" onClick={() => navigateTo("/login")}>Switch workspace <ChevronDown size={14} /></button>
-            <button type="button" className="organizer-notification" aria-label="View organizer notifications" onClick={() => toast("3 items have moved into your review queue")}><Bell size={18} /><span /></button>
+            <button type="button" className="organizer-notification" aria-label="View organizer notifications" onClick={() => toast("Review queues are available in Media review and Social review.")}><Bell size={18} /><span /></button>
           </div>
         </div>
         {children}

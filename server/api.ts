@@ -250,6 +250,31 @@ function canContributeToEvent(user: PortalUser, access: "none" | "view" | "edit"
   return access === "edit" || (access !== "none" && hasLightshipAccess(user));
 }
 
+function requireLightship(user: PortalUser): void {
+  if (!hasLightshipAccess(user)) throw new Error("Lightship team access is required.");
+}
+
+const organizerEventSelect = eventSelect.replace(" FROM events e", `,
+  (SELECT count(*)::int FROM media_assets ma WHERE ma.event_id = e.id AND ma.archived_at IS NULL) AS media_count,
+  (SELECT count(*)::int FROM media_assets ma WHERE ma.event_id = e.id AND ma.archived_at IS NULL AND ma.approval_state = 'pending') AS pending_media_count,
+  (SELECT count(*)::int FROM social_requests sr WHERE sr.event_id = e.id AND sr.archived_at IS NULL) AS social_count,
+  (SELECT count(*)::int FROM social_requests sr WHERE sr.event_id = e.id AND sr.archived_at IS NULL AND sr.status = 'in_review') AS pending_social_count
+  FROM events e`);
+
+function serializeOrganizerEvent(row: Record<string, unknown>) {
+  return {
+    ...serializeEvent(row),
+    mediaCount: Number(row.media_count || 0), pendingMediaCount: Number(row.pending_media_count || 0),
+    socialCount: Number(row.social_count || 0), pendingSocialCount: Number(row.pending_social_count || 0),
+  };
+}
+
+function reviewState(value: unknown, allowed: readonly string[], label: string): string {
+  const state = typeof value === "string" ? value.trim().toLowerCase() : "";
+  if (!allowed.includes(state)) throw new Error(`${label} review state is invalid.`);
+  return state;
+}
+
 const editableEventFields: Record<string, string> = {
   title: "title", description: "description", startsAt: "starts_at", endsAt: "ends_at", timezone: "timezone",
   venueName: "venue_name", addressLine1: "address_line_1", addressLine2: "address_line_2", city: "city",
@@ -576,6 +601,170 @@ export function addApiRoutes(app: import("express").Express): void {
       await client.query("ROLLBACK").catch(() => undefined);
       next(error);
     } finally { client.release(); }
+  });
+
+  // Organizer control room: every queue and action uses the live portal data.
+  app.get("/api/organizer/overview", requireSession, async (req, res, next) => {
+    try {
+      requireLightship(req.portalUser!);
+      const [events, media, social] = await Promise.all([
+        pool.query<{ total: number; pending_partner: number }>(`SELECT count(*)::int AS total, count(*) FILTER (WHERE p.pending_on = 'partner')::int AS pending_partner FROM events e JOIN event_pipeline p ON p.event_id = e.id WHERE e.archived_at IS NULL`),
+        pool.query<{ pending: number }>("SELECT count(*) FILTER (WHERE approval_state = 'pending')::int AS pending FROM media_assets WHERE archived_at IS NULL"),
+        pool.query<{ pending: number }>("SELECT count(*) FILTER (WHERE status = 'in_review')::int AS pending FROM social_requests WHERE archived_at IS NULL"),
+      ]);
+      res.json({ overview: { eventCount: events.rows[0]?.total || 0, pendingPartnerCount: events.rows[0]?.pending_partner || 0, pendingMediaCount: media.rows[0]?.pending || 0, pendingSocialCount: social.rows[0]?.pending || 0 } });
+    } catch (error) { next(error); }
+  });
+
+  app.get("/api/organizer/events", requireSession, async (req, res, next) => {
+    try {
+      requireLightship(req.portalUser!);
+      const result = await pool.query<Record<string, unknown>>(`${organizerEventSelect} WHERE e.archived_at IS NULL ORDER BY e.starts_at ASC, e.id ASC`);
+      res.json({ events: result.rows.map(serializeOrganizerEvent) });
+    } catch (error) { next(error); }
+  });
+
+  app.get("/api/organizer/events/:eventId", requireSession, async (req, res, next) => {
+    try {
+      requireLightship(req.portalUser!);
+      const eventId = parseEventId(req.params.eventId);
+      if (!eventId) { res.status(400).json({ error: "Event id is invalid." }); return; }
+      const result = await pool.query<Record<string, unknown>>(`${organizerEventSelect} WHERE e.id = $1 AND e.archived_at IS NULL`, [eventId]);
+      if (!result.rows[0]) { res.status(404).json({ error: "Event not found." }); return; }
+      res.json({ event: serializeOrganizerEvent(result.rows[0]) });
+    } catch (error) { next(error); }
+  });
+
+  app.patch("/api/organizer/events/:eventId/review", requireSession, async (req, res, next) => {
+    const client = await pool.connect();
+    try {
+      requireLightship(req.portalUser!);
+      const eventId = parseEventId(req.params.eventId);
+      if (!eventId) { res.status(400).json({ error: "Event id is invalid." }); return; }
+      const state = reviewState(req.body?.state, ["draft", "in_review", "changes_needed", "approved", "live", "not_moving_forward"], "Event");
+      const pendingOn = ["changes_needed", "draft"].includes(state) ? "partner" : "lightship";
+      await client.query("BEGIN");
+      const current = await client.query<Record<string, unknown>>("SELECT e.*, p.current_state, p.pending_on FROM events e JOIN event_pipeline p ON p.event_id = e.id WHERE e.id = $1 AND e.archived_at IS NULL FOR UPDATE", [eventId]);
+      if (!current.rows[0]) { await client.query("ROLLBACK"); res.status(404).json({ error: "Event not found." }); return; }
+      await client.query("UPDATE events SET event_status = $1, updated_by_user_id = $2 WHERE id = $3", [state, req.portalUser!.id, eventId]);
+      await client.query("UPDATE event_pipeline SET current_state = $1, pending_on = $2, updated_at = now(), updated_by_user_id = $3 WHERE event_id = $4", [state, pendingOn, req.portalUser!.id, eventId]);
+      await logActivity(client, req.portalUser!, "event", eventId, "event_reviewed", current.rows[0], { state, pendingOn }, {});
+      await client.query("COMMIT");
+      const updated = await pool.query<Record<string, unknown>>(`${organizerEventSelect} WHERE e.id = $1`, [eventId]);
+      res.json({ event: serializeOrganizerEvent(updated.rows[0]) });
+    } catch (error) { await client.query("ROLLBACK").catch(() => undefined); next(error); } finally { client.release(); }
+  });
+
+  app.get("/api/organizer/media", requireSession, async (req, res, next) => {
+    try {
+      requireLightship(req.portalUser!);
+      const result = await pool.query<Record<string, unknown>>(`SELECT ma.*, e.title AS event_title, o.company_name, u.display_name AS uploader_name, u.email AS uploader_email,
+        (SELECT count(*)::int FROM media_comments mc WHERE mc.media_asset_id = ma.id) AS comment_count
+        FROM media_assets ma JOIN events e ON e.id = ma.event_id JOIN organizers o ON o.id = e.organizer_id LEFT JOIN portal_users u ON u.id = ma.uploaded_by_user_id
+        WHERE ma.archived_at IS NULL ORDER BY ma.uploaded_at DESC, ma.id DESC`);
+      res.json({ media: await Promise.all(result.rows.map(async (row) => ({ ...await serializeMediaAsset(row), event: { title: row.event_title, organizerName: row.company_name }, uploader: { name: row.uploader_name, email: row.uploader_email }, commentCount: Number(row.comment_count || 0) }))) });
+    } catch (error) { next(error); }
+  });
+
+  app.get("/api/organizer/media/:mediaId", requireSession, async (req, res, next) => {
+    try {
+      requireLightship(req.portalUser!);
+      const mediaId = parseEventId(req.params.mediaId);
+      if (!mediaId) { res.status(400).json({ error: "Media id is invalid." }); return; }
+      const result = await pool.query<Record<string, unknown>>(`SELECT ma.*, e.title AS event_title, o.company_name, u.display_name AS uploader_name, u.email AS uploader_email,
+        (SELECT count(*)::int FROM media_comments mc WHERE mc.media_asset_id = ma.id) AS comment_count
+        FROM media_assets ma JOIN events e ON e.id = ma.event_id JOIN organizers o ON o.id = e.organizer_id LEFT JOIN portal_users u ON u.id = ma.uploaded_by_user_id
+        WHERE ma.id = $1 AND ma.archived_at IS NULL`, [mediaId]);
+      if (!result.rows[0]) { res.status(404).json({ error: "Media not found." }); return; }
+      const row = result.rows[0];
+      res.json({ media: { ...await serializeMediaAsset(row), event: { title: row.event_title, organizerName: row.company_name }, uploader: { name: row.uploader_name, email: row.uploader_email }, commentCount: Number(row.comment_count || 0) } });
+    } catch (error) { next(error); }
+  });
+
+  app.patch("/api/organizer/media/:mediaId/review", requireSession, async (req, res, next) => {
+    const client = await pool.connect();
+    try {
+      requireLightship(req.portalUser!);
+      const mediaId = parseEventId(req.params.mediaId);
+      if (!mediaId) { res.status(400).json({ error: "Media id is invalid." }); return; }
+      const state = reviewState(req.body?.state, ["pending", "approved", "changes_needed", "rejected"], "Media");
+      await client.query("BEGIN");
+      const current = await client.query<Record<string, unknown>>("SELECT * FROM media_assets WHERE id = $1 AND archived_at IS NULL FOR UPDATE", [mediaId]);
+      if (!current.rows[0]) { await client.query("ROLLBACK"); res.status(404).json({ error: "Media not found." }); return; }
+      const updated = await client.query<Record<string, unknown>>("UPDATE media_assets SET approval_state = $1, reviewed_at = now(), reviewed_by_user_id = $2 WHERE id = $3 RETURNING *", [state, req.portalUser!.id, mediaId]);
+      await logActivity(client, req.portalUser!, "media_asset", mediaId, "media_reviewed", current.rows[0], updated.rows[0], { eventId: current.rows[0].event_id });
+      await client.query("COMMIT");
+      res.json({ media: await serializeMediaAsset(updated.rows[0]) });
+    } catch (error) { await client.query("ROLLBACK").catch(() => undefined); next(error); } finally { client.release(); }
+  });
+
+  app.get("/api/organizer/media/:mediaId/comments", requireSession, async (req, res, next) => {
+    try {
+      requireLightship(req.portalUser!);
+      const mediaId = parseEventId(req.params.mediaId);
+      if (!mediaId) { res.status(400).json({ error: "Media id is invalid." }); return; }
+      const result = await pool.query(`SELECT mc.*, u.display_name, u.email, COALESCE((SELECT ura.role FROM user_role_assignments ura WHERE ura.user_id = u.id AND ura.role IN ('admin','lightship_reviewer') ORDER BY ura.role = 'admin' DESC LIMIT 1), 'partner') AS role FROM media_comments mc JOIN portal_users u ON u.id = mc.created_by_user_id WHERE mc.media_asset_id = $1 ORDER BY mc.created_at ASC, mc.id ASC`, [mediaId]);
+      res.json({ comments: result.rows.map((row) => ({ id: row.id, body: row.body, createdAt: row.created_at, author: { name: row.display_name || row.email, email: row.email, role: row.role } })) });
+    } catch (error) { next(error); }
+  });
+
+  app.post("/api/organizer/media/:mediaId/comments", requireSession, async (req, res, next) => {
+    const client = await pool.connect();
+    try {
+      requireLightship(req.portalUser!);
+      const mediaId = parseEventId(req.params.mediaId); const body = typeof req.body?.body === "string" ? req.body.body.trim() : "";
+      if (!mediaId || !body || body.length > 10000) { res.status(400).json({ error: "A comment of 10,000 characters or fewer is required." }); return; }
+      await client.query("BEGIN");
+      const media = await client.query<Record<string, unknown>>("SELECT * FROM media_assets WHERE id = $1 AND archived_at IS NULL FOR UPDATE", [mediaId]);
+      if (!media.rows[0]) { await client.query("ROLLBACK"); res.status(404).json({ error: "Media not found." }); return; }
+      const inserted = await client.query("INSERT INTO media_comments (media_asset_id, body, created_by_user_id) VALUES ($1, $2, $3) RETURNING *", [mediaId, body, req.portalUser!.id]);
+      await logActivity(client, req.portalUser!, "media_asset", mediaId, "media_comment_added", null, inserted.rows[0], { eventId: media.rows[0].event_id });
+      await client.query("COMMIT");
+      res.status(201).json({ comment: { id: inserted.rows[0].id, body: inserted.rows[0].body, createdAt: inserted.rows[0].created_at, author: { name: req.portalUser!.displayName || req.portalUser!.email, email: req.portalUser!.email, role: sessionRole(req.portalUser!) } } });
+    } catch (error) { await client.query("ROLLBACK").catch(() => undefined); next(error); } finally { client.release(); }
+  });
+
+  app.get("/api/organizer/social", requireSession, async (req, res, next) => {
+    try {
+      requireLightship(req.portalUser!);
+      const result = await pool.query<Record<string, unknown>>(`SELECT sr.*, e.title AS event_title, o.company_name, u.display_name AS submitter_name, u.email AS submitter_email,
+        (SELECT count(*)::int FROM social_request_messages sm WHERE sm.social_request_id = sr.id) AS comment_count
+        FROM social_requests sr JOIN events e ON e.id = sr.event_id JOIN organizers o ON o.id = e.organizer_id JOIN portal_users u ON u.id = sr.created_by_user_id
+        WHERE sr.archived_at IS NULL ORDER BY sr.created_at DESC, sr.id DESC`);
+      res.json({ socialRequests: result.rows.map((row) => ({ ...serializeSocialRequest(row), event: { title: row.event_title, organizerName: row.company_name }, commentCount: Number(row.comment_count || 0) })) });
+    } catch (error) { next(error); }
+  });
+
+  app.get("/api/organizer/social/:requestId", requireSession, async (req, res, next) => {
+    try {
+      requireLightship(req.portalUser!);
+      const requestId = parseEventId(req.params.requestId);
+      if (!requestId) { res.status(400).json({ error: "Social request id is invalid." }); return; }
+      const result = await pool.query<Record<string, unknown>>(`SELECT sr.*, e.title AS event_title, o.company_name, u.display_name AS submitter_name, u.email AS submitter_email,
+        (SELECT count(*)::int FROM social_request_messages sm WHERE sm.social_request_id = sr.id) AS comment_count
+        FROM social_requests sr JOIN events e ON e.id = sr.event_id JOIN organizers o ON o.id = e.organizer_id JOIN portal_users u ON u.id = sr.created_by_user_id
+        WHERE sr.id = $1 AND sr.archived_at IS NULL`, [requestId]);
+      if (!result.rows[0]) { res.status(404).json({ error: "Social request not found." }); return; }
+      const row = result.rows[0];
+      res.json({ socialRequest: { ...serializeSocialRequest(row), event: { title: row.event_title, organizerName: row.company_name }, commentCount: Number(row.comment_count || 0) } });
+    } catch (error) { next(error); }
+  });
+
+  app.patch("/api/organizer/social/:requestId/review", requireSession, async (req, res, next) => {
+    const client = await pool.connect();
+    try {
+      requireLightship(req.portalUser!);
+      const requestId = parseEventId(req.params.requestId);
+      if (!requestId) { res.status(400).json({ error: "Social request id is invalid." }); return; }
+      const state = reviewState(req.body?.state, ["in_review", "approved", "changes_needed", "not_moving_forward"], "Social");
+      await client.query("BEGIN");
+      const current = await client.query<Record<string, unknown>>("SELECT * FROM social_requests WHERE id = $1 AND archived_at IS NULL FOR UPDATE", [requestId]);
+      if (!current.rows[0]) { await client.query("ROLLBACK"); res.status(404).json({ error: "Social request not found." }); return; }
+      const updated = await client.query<Record<string, unknown>>("UPDATE social_requests SET status = $1, reviewed_at = now(), reviewed_by_user_id = $2, updated_by_user_id = $2 WHERE id = $3 RETURNING *", [state, req.portalUser!.id, requestId]);
+      await logActivity(client, req.portalUser!, "social_request", requestId, "social_request_reviewed", current.rows[0], updated.rows[0], { eventId: current.rows[0].event_id });
+      await client.query("COMMIT");
+      res.json({ socialRequest: serializeSocialRequest(updated.rows[0]) });
+    } catch (error) { await client.query("ROLLBACK").catch(() => undefined); next(error); } finally { client.release(); }
   });
 }
 

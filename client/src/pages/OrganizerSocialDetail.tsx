@@ -1,73 +1,17 @@
 import OrganizerShell from "@/components/OrganizerShell";
-import { organizerEvents, socialSubmissions, type ReviewStatus, type ThreadComment } from "@/data/organizerMockData";
-import { ArrowLeft, CalendarDays, Check, CircleX, Copy, MessageSquareText, Send, Share2, Sparkles, Undo2 } from "lucide-react";
+import { ArrowLeft, Check, CircleX, ExternalLink, MessageSquareText, Send, Undo2 } from "lucide-react";
 import { useState } from "react";
 import { useLocation, useRoute } from "wouter";
+import { addSocialMessage, reviewSocial, useOrganizerSocialDetail, useSocialMessages } from "@/lib/organizer";
+import { titleCase } from "@/lib/portal";
 import { toast } from "sonner";
 
-function statusClass(status: string) {
-  return status.toLowerCase().replace(/\s/g, "-");
-}
-
 export default function OrganizerSocialDetail() {
-  const [, params] = useRoute("/organizer/social/:id");
-  const [, navigate] = useLocation();
-  const submission = socialSubmissions.find((item) => item.id === params?.id) ?? socialSubmissions[0];
-  const event = organizerEvents.find((item) => item.id === submission.eventId);
-  const [status, setStatus] = useState<ReviewStatus>(submission.status);
-  const [comments, setComments] = useState<ThreadComment[]>(submission.comments);
-  const [draft, setDraft] = useState("");
-
-  const setDecision = (nextStatus: ReviewStatus) => {
-    setStatus(nextStatus);
-    const labels: Record<ReviewStatus, string> = { Pending: "Social request is back in review", Approved: "Social request approved", "Changes needed": "Feedback request sent", Rejected: "Social request rejected" };
-    toast(labels[nextStatus]);
-  };
-
-  const sendComment = () => {
-    const message = draft.trim();
-    if (!message) return;
-    setComments((current) => [...current, { author: "Lena Brooks", role: "Organizer", initials: "LB", message, time: "Just now" }]);
-    setDraft("");
-    toast("Comment sent to the event partner");
-  };
-
-  return (
-    <OrganizerShell>
-      <main className="organizer-canvas organizer-detail-canvas">
-        <button className="organizer-back-link" type="button" onClick={() => navigate("/organizer/social")}><ArrowLeft size={16} />Social review</button>
-        <section className="organizer-review-detail-head">
-          <div><p className="eyebrow"><span className="eyebrow-dot" /> Social request</p><h1>{submission.title}</h1><p>{submission.eventName} <i>·</i> {submission.organization}</p></div>
-          <span className={`organizer-status-chip organizer-status-chip--${statusClass(status)}`}>{status}</span>
-        </section>
-
-        <section className="organizer-review-detail-grid">
-          <article className="organizer-social-preview-panel">
-            <div className={`organizer-social-full-preview organizer-social-full-preview--${submission.color}`}><span>BLACK<br />TECH WEEK</span><b>{submission.eventName}</b><i /><em>{submission.platform}<br />{submission.requestType}</em></div>
-            <div className="organizer-social-request-meta"><span><Share2 size={16} />{submission.platform}</span><span>{submission.requestType}</span><span><CalendarDays size={16} />Target: {submission.proposedDate}</span></div>
-            <div className="organizer-caption-block"><div><span><Copy size={15} /> Partner caption</span><p>{submission.caption}</p></div></div>
-            <div className="organizer-media-event-link"><div><span className="organizer-mini-visual organizer-mini-visual--cyan"><CalendarDays size={16} /></span><span><small>Related event</small><strong>{event?.name}</strong></span></div><button type="button" onClick={() => navigate(`/organizer/events/${submission.eventId}`)}>Open event</button></div>
-          </article>
-
-          <aside className="organizer-decision-panel">
-            <div><p className="eyebrow"><span className="eyebrow-dot eyebrow-dot--orange" /> Your decision</p><h2>Make the collaboration clear.</h2><p>Choose an outcome, then leave any editorial, scheduling, or partner-tagging feedback in the conversation.</p></div>
-            <div className="organizer-decision-actions">
-              <button type="button" className="organizer-decision organizer-decision--approve" onClick={() => setDecision("Approved")}><Check size={16} />Approve</button>
-              <button type="button" className="organizer-decision organizer-decision--changes" onClick={() => setDecision("Changes needed")}><Undo2 size={16} />Ask for changes</button>
-              <button type="button" className="organizer-decision organizer-decision--reject" onClick={() => setDecision("Rejected")}><CircleX size={16} />Reject</button>
-            </div>
-            <div className="organizer-decision-tip"><Sparkles size={15} /><span><strong>Collaboration cue</strong> Confirm tagged accounts, post timing, and any required campaign language before you approve.</span></div>
-          </aside>
-        </section>
-
-        <section className="organizer-comment-workspace">
-          <div className="organizer-comment-workspace-head"><div><p className="eyebrow"><span className="eyebrow-dot" /> Conversation</p><h2>Feedback & comments</h2></div><span><MessageSquareText size={16} />{comments.length} messages</span></div>
-          <div className="organizer-comment-thread">
-            {comments.map((comment, index) => <article className="organizer-thread-comment" key={`${comment.author}-${index}`}><span className={`organizer-thread-avatar organizer-thread-avatar--${comment.role.toLowerCase()}`}>{comment.initials}</span><div><span><strong>{comment.author}</strong><small>{comment.role} · {comment.time}</small></span><p>{comment.message}</p></div></article>)}
-          </div>
-          <div className="organizer-comment-compose"><label htmlFor="social-comment">Reply to {submission.organization}</label><textarea id="social-comment" value={draft} onChange={(event) => setDraft(event.target.value)} placeholder="Share direction, edits, or publishing notes…" /><button type="button" onClick={sendComment}><Send size={15} />Send comment</button></div>
-        </section>
-      </main>
-    </OrganizerShell>
-  );
+  const [, params] = useRoute("/organizer/social/:id"); const [, navigate] = useLocation(); const [draft, setDraft] = useState("");
+  const { data: request, loading, error, refresh } = useOrganizerSocialDetail(params?.id); const messages = useSocialMessages(request?.eventId, params?.id);
+  const review = async (state: string) => { if (!request) return; try { await reviewSocial(request.id, state); await refresh(); toast(`Request marked ${titleCase(state)}.`); } catch (caught) { toast.error(caught instanceof Error ? caught.message : "Unable to save review."); } };
+  const comment = async () => { if (!request || !draft.trim()) return; try { await addSocialMessage(request.eventId, request.id, draft.trim()); setDraft(""); await messages.refresh(); toast("Comment sent."); } catch (caught) { toast.error(caught instanceof Error ? caught.message : "Unable to add comment."); } };
+  if (loading) return <OrganizerShell><main className="organizer-canvas">Loading request…</main></OrganizerShell>;
+  if (!request) return <OrganizerShell><main className="organizer-canvas"><div className="organizer-empty-state"><strong>{error || "Social request not found."}</strong></div></main></OrganizerShell>;
+  return <OrganizerShell><main className="organizer-canvas organizer-detail-canvas"><button className="organizer-back-link" onClick={() => navigate("/organizer/social")}><ArrowLeft size={16} />Social review</button><section className="organizer-review-detail-head"><div><p className="eyebrow"><span className="eyebrow-dot" /> {request.event.organizerName}</p><h1>{request.title}</h1><p>{request.event.title} · {titleCase(request.platform)} · {titleCase(request.requestType)}</p></div><span className={`organizer-status-chip organizer-status-chip--${request.status.replace(/_/g, "-")}`}>{titleCase(request.status)}</span></section><section className="organizer-review-detail-grid"><article className="organizer-social-preview-panel"><div className="organizer-caption-block"><div><span>Partner context</span><p>{request.requestContext || "No additional context supplied."}</p></div></div><div className="organizer-caption-block"><div><span>Post copy</span><p>{request.postCopy || "No post copy supplied."}</p></div></div><a className="rsvp-link" href={request.postUrl} target="_blank" rel="noreferrer">Open partner draft <ExternalLink size={16} /></a></article><aside className="organizer-decision-panel"><div><p className="eyebrow"><span className="eyebrow-dot eyebrow-dot--orange" /> Your decision</p><h2>Make the collaboration clear.</h2></div><div className="organizer-decision-actions"><button className="organizer-decision organizer-decision--approve" onClick={() => void review("approved")}><Check size={16} />Approve</button><button className="organizer-decision organizer-decision--changes" onClick={() => void review("changes_needed")}><Undo2 size={16} />Ask for changes</button><button className="organizer-decision organizer-decision--reject" onClick={() => void review("not_moving_forward")}><CircleX size={16} />Do not move forward</button></div></aside></section><section className="organizer-comment-workspace"><div className="organizer-comment-workspace-head"><div><p className="eyebrow"><span className="eyebrow-dot" /> Conversation</p><h2>Feedback & comments</h2></div><span><MessageSquareText size={16} />{messages.data?.length || 0} messages</span></div><div className="organizer-comment-thread">{messages.data?.map((item) => <article className="organizer-thread-comment" key={item.id}><div><span><strong>{item.author.name}</strong><small>{item.author.role}</small></span><p>{item.body}</p></div></article>)}</div><div className="organizer-comment-compose"><label htmlFor="social-comment">Reply to partner</label><textarea id="social-comment" value={draft} onChange={(event) => setDraft(event.target.value)} placeholder="Share direction or edits…" /><button type="button" onClick={() => void comment()}><Send size={15} />Send comment</button></div></section></main></OrganizerShell>;
 }
